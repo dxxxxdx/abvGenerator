@@ -72,7 +72,7 @@ def vector_generate(abv_info):
                 res += f"[.c.,{input_str}]->[{output_str}];\n"
             else:
                 res += f"[{input_str}]->[{output_str}];\n"
-#TODO 这个时钟需要考虑
+
     res += "END\n"
     return res
 
