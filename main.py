@@ -10,16 +10,15 @@ from abvGenerate import *
 def main():
     window = tk.Tk()
     window.title("ABV 文件生成器")
-    abv_info = AbvInfo([], [], [])
-    window_parm = []
+    abv_info = AbvInfo([], [], [],window)
+
 
     # 输入口名称文本框
     tk.Label(window, text="输入口名称（用逗号分隔）：\n无输入使用默认构造").pack()
     input_name_var = tk.StringVar()
-
     input_name_entry = tk.Entry(window, textvariable=input_name_var, width=60)
     input_name_entry.pack(pady=5)
-    input_name_entry.insert(0, generate_input_names(6))  # 默认值，可根据需要修改
+    input_name_entry.insert(0, ",".join(generate_input_names(3)))   # 默认值，可根据需要修改
 
     # 输入口数量选择
     tk.Label(window, text="选择输入口数量：").pack()
@@ -40,6 +39,14 @@ def main():
     # 文本框
     output_box = scrolledtext.ScrolledText(window, width=60, height=20, font=("Courier", 10))
     output_box.pack(padx=10, pady=10)
+
+    #选择时钟
+    switch_var = tk.BooleanVar(value=False)
+    def toggel_clock_status():
+        abv_info.with_clock = not abv_info.with_clock
+        on_generate()
+    switch = tk.Checkbutton(window, text="包括时钟CLK", variable=switch_var, command=toggel_clock_status)
+    switch.pack(pady=10)
 
     # 配置 BUS 按钮
     tk.Button(window, text="配置BUS", command=lambda: open_bus_config(abv_info)).pack(pady=5)
@@ -62,7 +69,6 @@ def main():
         output_box.insert(tk.END, abv_text)
 
     tk.Button(window, text="生成 ABV 内容", command=on_generate).pack(pady=10)
-
     # 自动更新输入输出口列表并刷新文本框
     input_combo.bind("<<ComboboxSelected>>", lambda e: on_generate())
     output_combo.bind("<<ComboboxSelected>>", lambda e: on_generate())

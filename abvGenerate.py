@@ -5,11 +5,13 @@ def line(text=""):
     return text + ";\n"
 
 class AbvInfo :
-    def __init__(self,input_list,bus_list,out_put,module_name = "untitled"):
+    def __init__(self,input_list,bus_list,out_put,window,module_name = "untitled",with_clock = False):
         self.module_name = module_name
         self.input_list = input_list
         self.bus_list = bus_list
         self.out_put = out_put
+        self.with_clock = with_clock
+        self.window = window
 
 class BusInfo :
     def __init__(self,name,pins):
@@ -23,7 +25,10 @@ def header_generate(abv_info):
 
     # 所有引脚：普通输入 + 输出
     pin_list = abv_info.input_list + abv_info.out_put
-    res += line(",".join(pin_list) + " PIN")
+    if abv_info.with_clock:
+        res += line("CLK,"+",".join(pin_list) + " PIN")
+    else:
+        res += line(",".join(pin_list) + " PIN")
 
     # 自动声明 Bus
     for bus in abv_info.bus_list:
@@ -48,7 +53,10 @@ def vector_generate(abv_info):
     # 构建输入输出映射行
     input_display = regular_inputs + bus_names
     output_display = abv_info.out_put
-    res += f"([{','.join(input_display)}]->[{','.join(output_display)}])\n"
+    if abv_info.with_clock:
+        res += f"([CLK,{','.join(input_display)}]->[{','.join(output_display)}])\n"
+    else:
+        res += f"([{','.join(input_display)}]->[{','.join(output_display)}])\n"
 
     # 构建组合空间：普通输入是 0/1，Bus 是整数范围
     regular_combos = list(product([0, 1], repeat=len(regular_inputs)))
@@ -60,8 +68,11 @@ def vector_generate(abv_info):
         for b_vals in bus_combos:
             input_str = ",".join(str(v) for v in r_vals + b_vals)
             output_str = ",".join(["x"] * len(output_display))  # 默认输出为 x
-            res += f"[{input_str}]->[{output_str}];\n"
-
+            if abv_info.with_clock:
+                res += f"[.c.,{input_str}]->[{output_str}];\n"
+            else:
+                res += f"[{input_str}]->[{output_str}];\n"
+#TODO 这个时钟需要考虑
     res += "END\n"
     return res
 
@@ -71,7 +82,7 @@ def generate_output_names(n):
 
 def generate_input_names(n):
     # 生成 A, B, C, D... 最多支持 26 个输入口
-    return [f"{chr(ord('A') + i)}," for i in range(n)]
+    return [f"{chr(ord('A') + i)}" for i in range(n)]
 
 
 
@@ -104,6 +115,7 @@ def open_bus_config(abvinfo):
             name = f"BUS{len(abvinfo.bus_list) + 1}"
         abvinfo.bus_list.append(BusInfo(name, selected_pins))
         print(f"✅ 添加 Bus：{name}，引脚：{selected_pins}")
+
         bus_window.destroy()
 
     tk.Button(bus_window, text="确认", command=confirm_bus).grid(row=20, column=0, columnspan=4, pady=10)
