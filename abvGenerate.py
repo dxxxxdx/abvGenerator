@@ -71,7 +71,7 @@ def generate_output_names(n):
 
 def generate_input_names(n):
     # 生成 A, B, C, D... 最多支持 26 个输入口
-    return [chr(ord('A') + i) for i in range(n)]
+    return [f"{chr(ord('A') + i)}," for i in range(n)]
 
 
 
